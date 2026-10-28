@@ -127,7 +127,9 @@ try {
 
                     <!-- Where AJAX would go to dynamically load the contacts table body -->
                     <tbody id="contactsTableBody">
-                        <?php include 'contacts.php'; ?>
+                        <tr>
+                            <td colspan="8">Loading contacts...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -135,6 +137,7 @@ try {
     </div>
 
     <!-- Where JavaScript and AJAX would go for the popup webpages -->
+    <script src="app.js"></script>
 </body>
 
 </html>

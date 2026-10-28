@@ -11,9 +11,11 @@
 require_once 'db.php';
 
 if (!function_exists('getInitials')) {
-    function getInitials($first, $last): string {
-        $f = !empty($first) ? mb_substr(trim($first), 0, 1) : '';
-        $l = !empty($last) ? mb_substr(trim($last), 0, 1) : '';
+    function getInitials($first, $last): string
+    {
+        $f = !empty($first) ? substr(trim($first), 0, 1) : '';
+        $l = !empty($last) ? substr(trim($last), 0, 1) : '';
+
         return strtoupper($f . $l) ?: '??';
     }
 }
@@ -54,7 +56,7 @@ try {
 // Return HTML table rows directly for server-side rendering
 if (!empty($contacts)):
     foreach ($contacts as $contact):
-        $id = (int)$contact['id'];
+        $id = (int) $contact['id'];
         $firstName = htmlspecialchars($contact['first_name'] ?? '');
         $lastName = htmlspecialchars($contact['last_name'] ?? '');
         $fullName = trim($firstName . ' ' . $lastName);
@@ -67,62 +69,66 @@ if (!empty($contacts)):
 
         // Construct full address: Address 1, Address 2, City, State, Zip Code
         $addressLines = [];
-        if (!empty($contact['address_1'])) $addressLines[] = htmlspecialchars($contact['address_1']);
-        if (!empty($contact['address_2'])) $addressLines[] = htmlspecialchars($contact['address_2']);
+        if (!empty($contact['address_1']))
+            $addressLines[] = htmlspecialchars($contact['address_1']);
+        if (!empty($contact['address_2']))
+            $addressLines[] = htmlspecialchars($contact['address_2']);
 
         $cityStateZip = [];
-        if (!empty($contact['city'])) $cityStateZip[] = htmlspecialchars($contact['city']);
-        if (!empty($contact['state'])) $cityStateZip[] = htmlspecialchars($contact['state']);
-        if (!empty($contact['zip_code'])) $cityStateZip[] = htmlspecialchars($contact['zip_code']);
-        if (!empty($cityStateZip)) $addressLines[] = implode(', ', $cityStateZip);
+        if (!empty($contact['city']))
+            $cityStateZip[] = htmlspecialchars($contact['city']);
+        if (!empty($contact['state']))
+            $cityStateZip[] = htmlspecialchars($contact['state']);
+        if (!empty($contact['zip_code']))
+            $cityStateZip[] = htmlspecialchars($contact['zip_code']);
+        if (!empty($cityStateZip))
+            $addressLines[] = implode(', ', $cityStateZip);
 
         $fullAddress = !empty($addressLines) ? implode('<br>', $addressLines) : '<span class="text-subtle">No address provided</span>';
         $initials = getInitials($contact['first_name'] ?? '', $contact['last_name'] ?? '');
-?>
-    <tr id="contact-row-<?= $id ?>">
-        <td><?= $id ?></td>
-        <td>
-            <div class="contact-name-cell">
-                <div class="avatar-badge"><?= $initials ?></div>
-                <div><strong><?= $fullName ?></strong></div>
-            </div>
-        </td>
-        <td>
-            <div class="contact-meta">
-                <span><i class="fa-solid fa-envelope"></i> <a href="mailto:<?= $email ?>"><?= $email ?></a></span>
-                <span><i class="fa-solid fa-phone"></i> <a href="tel:<?= $phone ?>"><?= $phone ?></a></span>
-            </div>
-        </td>
-        <td>
-            <div class="address-text"><?= $fullAddress ?></div>
-        </td>
-        <td>
-            <span class="badge-group <?= $groupClass ?>"><?= $group ?></span>
-        </td>
-        <td>
-            <div class="notes-preview" title="<?= $notes ?>"><?= $notes ?: '<span class="text-subtle">-</span>' ?></div>
-        </td>
-        <td>
-            <span class="contact-date"><?= $dateAdded ?></span>
-        </td>
-        <td>
-            <div class="table-actions">
-                <!-- Where JavaScript and AJAX would go to open the Edit Contact popup -->
-                <a href="edit_contact.php?id=<?= $id ?>" class="btn btn-sm btn-edit" title="Edit Contact">
-                    <i class="fa-solid fa-pen-to-square"></i> Edit
-                </a>
+        ?>
+        <tr id="contact-row-<?= $id ?>">
+            <td><?= $id ?></td>
+            <td>
+                <div class="contact-name-cell">
+                    <div class="avatar-badge"><?= $initials ?></div>
+                    <div><strong><?= $fullName ?></strong></div>
+                </div>
+            </td>
+            <td>
+                <div class="contact-meta">
+                    <span><i class="fa-solid fa-envelope"></i> <a href="mailto:<?= $email ?>"><?= $email ?></a></span>
+                    <span><i class="fa-solid fa-phone"></i> <a href="tel:<?= $phone ?>"><?= $phone ?></a></span>
+                </div>
+            </td>
+            <td>
+                <div class="address-text"><?= $fullAddress ?></div>
+            </td>
+            <td>
+                <span class="badge-group <?= $groupClass ?>"><?= $group ?></span>
+            </td>
+            <td>
+                <div class="notes-preview" title="<?= $notes ?>"><?= $notes ?: '<span class="text-subtle">-</span>' ?></div>
+            </td>
+            <td>
+                <span class="contact-date"><?= $dateAdded ?></span>
+            </td>
+            <td>
+                <div class="table-actions">
+                    <a href="edit_contact.php?id=<?= $id ?>" class="btn btn-sm btn-edit" title="Edit Contact">
+                        <i class="fa-solid fa-pen-to-square"></i> Edit
+                    </a>
 
-                <!-- Where JavaScript and AJAX would go to open the Delete Contact confirmation popup -->
-                <a href="delete_contact.php?id=<?= $id ?>" class="btn btn-sm btn-delete" title="Delete Contact">
-                    <i class="fa-solid fa-trash-can"></i> Delete
-                </a>
-            </div>
-        </td>
-    </tr>
-<?php
+                    <button type="button" class="btn btn-sm btn-delete" data-id="<?= $id ?>" title="Delete Contact">
+                        <i class="fa-solid fa-trash-can"></i> Delete
+                    </button>
+                </div>
+            </td>
+        </tr>
+        <?php
     endforeach;
 else:
-?>
+    ?>
     <tr id="emptyStateRow">
         <td colspan="8" class="empty-state-cell">
             <div class="empty-state">
@@ -138,6 +144,6 @@ else:
             </div>
         </td>
     </tr>
-<?php
+    <?php
 endif;
 ?>
