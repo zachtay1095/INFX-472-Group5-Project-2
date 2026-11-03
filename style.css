@@ -1067,3 +1067,43 @@ dialog h2 {
     color: var(--ink);
     border-color: var(--red);
 }
+
+/* ==============================
+   CLICK TO COPY
+   ============================== */
+
+.copyable {
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.copyable:hover {
+    color: #55fff5;
+}
+
+.copyable:hover i {
+    color: #55fff5;
+}
+
+.copy-toast {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    background-color: #181f22;
+    color: #55fff5;
+    border: 1px solid #55fff5;
+    padding: 12px 18px;
+    font-weight: bold;
+    z-index: 9999;
+
+    opacity: 0;
+    transform: translateY(15px);
+    pointer-events: none;
+
+    transition: 0.2s ease;
+}
+
+.copy-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}

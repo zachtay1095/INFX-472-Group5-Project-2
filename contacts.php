@@ -97,8 +97,15 @@ if (!empty($contacts)):
             </td>
             <td>
                 <div class="contact-meta">
-                    <span><i class="fa-solid fa-envelope"></i> <a href="mailto:<?= $email ?>"><?= $email ?></a></span>
-                    <span><i class="fa-solid fa-phone"></i> <a href="tel:<?= $phone ?>"><?= $phone ?></a></span>
+                    <span class="copyable" data-copy="<?= $email ?>" title="Click to copy email">
+                        <i class="fa-solid fa-envelope"></i>
+                        <?= $email ?>
+                    </span>
+
+                    <span class="copyable" data-copy="<?= $phone ?>" title="Click to copy phone number">
+                        <i class="fa-solid fa-phone"></i>
+                        <?= $phone ?>
+                    </span>
                 </div>
             </td>
             <td>

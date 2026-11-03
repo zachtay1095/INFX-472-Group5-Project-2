@@ -390,7 +390,56 @@ document.addEventListener("submit", async function (event) {
         alert("Unable to add contact.");
     }
 });
+// ==============================
+// CLICK TO COPY CONTACT INFO
+// ==============================
 
+document.addEventListener("click", async function (event) {
+    const copyItem = event.target.closest(".copyable");
+
+    if (!copyItem) {
+        return;
+    }
+
+    const value = copyItem.dataset.copy;
+
+    try {
+        await navigator.clipboard.writeText(value);
+
+        showCopyToast("Copied: " + value);
+
+    } catch (error) {
+        console.error("Unable to copy contact information.", error);
+
+        showCopyToast("Unable to copy");
+    }
+});
+
+
+// ==============================
+// COPY NOTIFICATION
+// ==============================
+
+function showCopyToast(message) {
+    let toast = document.getElementById("copyToast");
+
+    if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "copyToast";
+        toast.className = "copy-toast";
+
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+    toast.classList.add("show");
+
+    clearTimeout(window.copyToastTimer);
+
+    window.copyToastTimer = setTimeout(function () {
+        toast.classList.remove("show");
+    }, 1800);
+}
 
 // ==============================
 // RUN WHEN THE PAGE FIRST LOADS
