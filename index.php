@@ -1,12 +1,6 @@
 <?php
 /**
  * index.php – The main page; displays the contact list and controls
- * 
- * Simple PHP Implementation:
- * - Standalone multi-page setup.
- * - "Add Contact" links directly to add_contact.php.
- * - "Edit" links directly to edit_contact.php?id=X.
- * - "Delete" links directly to delete_contact.php?id=X.
  */
 
 require_once 'db.php';
@@ -44,7 +38,9 @@ try {
     <!-- Google Fonts for NEON//2077 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
 
     <!-- Font Awesome 6.5.1 Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -67,10 +63,8 @@ try {
         <header class="page-header">
             <div class="header-title-area">
                 <h1><i class="fa-solid fa-address-book"></i> Contacts Directory</h1>
-                <p>Manage your address book using simple PHP and MySQL.</p>
             </div>
             <div class="header-actions">
-                <!-- Where JavaScript and AJAX would go to trigger the Add Contact popup -->
                 <a href="add_contact.php" class="btn btn-primary" id="btnAddContact">
                     <i class="fa-solid fa-plus"></i> Add Contact
                 </a>
@@ -86,13 +80,11 @@ try {
                 <div class="stat-pill"><span>Business:</span> <strong id="statBusiness"><?= $statBusiness ?></strong>
                 </div>
             </div>
-
-            <!-- Where JavaScript and AJAX would go for live search and filtering -->
-            <form method="GET" action="index.php" class="search-filter-group">
+            <form method="GET" action="index.php" class="search-filter-group" id="searchFilterForm">
                 <div class="search-box">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <input type="text" name="search" id="searchInput" placeholder="Search contacts..."
-                        value="<?= htmlspecialchars($searchQuery) ?>" aria-label="Search contacts">
+                        value="<?= htmlspecialchars($searchQuery) ?>" aria-label="Search contacts" autocomplete="off">
                 </div>
                 <select name="group" id="groupFilter" class="filter-select" aria-label="Filter by group">
                     <option value="">All Groups</option>
@@ -105,11 +97,9 @@ try {
                 <button type="submit" class="btn btn-secondary btn-sm" title="Apply Filter">
                     <i class="fa-solid fa-filter"></i> Filter
                 </button>
-                <?php if ($searchQuery !== '' || $selectedGroup !== ''): ?>
-                    <a href="index.php" class="btn btn-secondary btn-sm" title="Clear Filter">
-                        <i class="fa-solid fa-rotate-left"></i> Reset
-                    </a>
-                <?php endif; ?>
+                <button type="button" id="btnResetFilter" class="btn btn-secondary btn-sm" title="Clear Filter">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
             </form>
         </section>
 
@@ -129,8 +119,6 @@ try {
                             <th class="col-actions">Actions</th>
                         </tr>
                     </thead>
-
-                    <!-- Where AJAX would go to dynamically load the contacts table body -->
                     <tbody id="contactsTableBody">
                         <tr>
                             <td colspan="8">Loading contacts...</td>
@@ -140,8 +128,6 @@ try {
             </div>
         </main>
     </div>
-
-    <!-- Where JavaScript and AJAX would go for the popup webpages -->
     <script src="app.js"></script>
 </body>
 

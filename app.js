@@ -2,25 +2,53 @@
 // LOAD CONTACTS WITH AJAX
 // ==============================
 
-async function loadContacts() {
+async function loadContacts(isUserInitiatedSearch = false) {
     const tableBody = document.getElementById("contactsTableBody");
+    if (!tableBody) return;
+
+    const searchInput = document.getElementById("searchInput");
+    const groupFilter = document.getElementById("groupFilter");
+
+    const searchVal = searchInput ? searchInput.value.trim() : "";
+    const groupVal = groupFilter ? groupFilter.value.trim() : "";
+
+    const params = new URLSearchParams();
+    if (searchVal) params.append("search", searchVal);
+    if (groupVal) params.append("group", groupVal);
+
+    const queryStr = params.toString() ? `?${params.toString()}` : "";
 
     tableBody.innerHTML = `
         <tr>
-            <td colspan="8">Loading contacts...</td>
+            <td colspan="8" style="text-align: center; padding: 2.5rem;">
+                <i class="fa-solid fa-spinner fa-spin" style="margin-right: 0.5rem; color: var(--cyan);"></i>
+                Loading contacts...
+            </td>
         </tr>
     `;
 
     try {
-        const response = await fetch("contacts.php");
+        const response = await fetch(`contacts.php${queryStr}`);
         const html = await response.text();
 
         tableBody.innerHTML = html;
 
+        // If user searched/filtered and no contacts match, throw error notification
+        if (isUserInitiatedSearch && (searchVal || groupVal) && tableBody.querySelector("#emptyStateRow")) {
+            alert("Contact not found.");
+            showCopyToast("Contact not found.");
+        }
+
     } catch (error) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="8">Unable to load contacts.</td>
+                <td colspan="8" class="empty-state-cell">
+                    <div class="empty-state">
+                        <div class="empty-icon empty-icon-error"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <h3>Unable to load contacts</h3>
+                        <p>There was an error communicating with the server.</p>
+                    </div>
+                </td>
             </tr>
         `;
 
@@ -42,21 +70,55 @@ async function loadStats() {
             return;
         }
 
-        document.getElementById("statTotal").textContent =
-            result.stats.total;
+        const totalEl = document.getElementById("statTotal");
+        const familyEl = document.getElementById("statFamily");
+        const friendsEl = document.getElementById("statFriends");
+        const businessEl = document.getElementById("statBusiness");
 
-        document.getElementById("statFamily").textContent =
-            result.stats.Family;
-
-        document.getElementById("statFriends").textContent =
-            result.stats.Friends;
-
-        document.getElementById("statBusiness").textContent =
-            result.stats.Business;
+        if (totalEl) totalEl.textContent = result.stats.total;
+        if (familyEl) familyEl.textContent = result.stats.Family;
+        if (friendsEl) friendsEl.textContent = result.stats.Friends;
+        if (businessEl) businessEl.textContent = result.stats.Business;
 
     } catch (error) {
         console.error("Unable to load statistics.", error);
     }
+}
+
+
+// ==============================
+// SEARCH & FILTER HANDLERS (ON-DEMAND)
+// ==============================
+
+function setupSearchAndFilters() {
+    const searchInput = document.getElementById("searchInput");
+    const groupFilter = document.getElementById("groupFilter");
+    const searchForm = document.getElementById("searchFilterForm");
+
+    // Submit search form (e.g. clicking 'Filter' button or pressing Enter)
+    if (searchForm) {
+        searchForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            loadContacts(true);
+        });
+    }
+
+    // Changing the group filter dropdown triggers filter
+    if (groupFilter) {
+        groupFilter.addEventListener("change", function () {
+            loadContacts(true);
+        });
+    }
+
+    // Reset button handler clears inputs and reloads full list
+    document.addEventListener("click", function (event) {
+        if (event.target.closest("#btnResetFilter")) {
+            event.preventDefault();
+            if (searchInput) searchInput.value = "";
+            if (groupFilter) groupFilter.value = "";
+            loadContacts(false);
+        }
+    });
 }
 
 
@@ -82,7 +144,6 @@ document.addEventListener("click", async function (event) {
     }
 
     const formData = new FormData();
-
     formData.append("id", contactId);
 
     try {
@@ -94,18 +155,15 @@ document.addEventListener("click", async function (event) {
         const result = await response.json();
 
         if (result.success) {
-            alert(result.message);
-
+            showCopyToast(result.message);
             loadContacts();
             loadStats();
-
         } else {
-            alert(result.message);
+            alert(result.message || "Failed to delete contact.");
         }
 
     } catch (error) {
         console.error(error);
-
         alert("Unable to delete contact.");
     }
 });
@@ -145,7 +203,6 @@ document.addEventListener("click", async function (event) {
 
         if (!dialog) {
             dialog = document.createElement("dialog");
-
             dialog.id = "editDialog";
 
             dialog.innerHTML = `
@@ -157,7 +214,7 @@ document.addEventListener("click", async function (event) {
                         Close
                     </button>
 
-                    <h2>Edit Contact</h2>
+                    <h2><i class="fa-solid fa-user-pen"></i> Edit Contact</h2>
 
                     <div id="editFormContainer"></div>
                 </div>
@@ -166,18 +223,14 @@ document.addEventListener("click", async function (event) {
             document.body.appendChild(dialog);
         }
 
-        const container =
-            document.getElementById("editFormContainer");
-
+        const container = document.getElementById("editFormContainer");
         container.innerHTML = "";
-
         container.appendChild(editForm);
 
         dialog.showModal();
 
     } catch (error) {
         console.error(error);
-
         alert("Unable to load contact information.");
     }
 });
@@ -189,10 +242,8 @@ document.addEventListener("click", async function (event) {
 
 document.addEventListener("click", function (event) {
     if (event.target.id === "closeEditDialog") {
-        const dialog =
-            document.getElementById("editDialog");
-
-        dialog.close();
+        const dialog = document.getElementById("editDialog");
+        if (dialog) dialog.close();
     }
 });
 
@@ -202,8 +253,7 @@ document.addEventListener("click", function (event) {
 // ==============================
 
 document.addEventListener("submit", async function (event) {
-    const editForm =
-        event.target.closest("#editDialog form");
+    const editForm = event.target.closest("#editDialog form");
 
     if (!editForm) {
         return;
@@ -226,26 +276,37 @@ document.addEventListener("submit", async function (event) {
          * edit_contact.php redirects to index.php
          * when the update succeeds.
          */
-
         if (response.redirected) {
-            alert("Contact updated successfully!");
+            showCopyToast("Contact updated successfully!");
 
-            document
-                .getElementById("editDialog")
-                .close();
+            const dialog = document.getElementById("editDialog");
+            if (dialog) dialog.close();
 
             loadContacts();
             loadStats();
 
         } else {
-            alert(
-                "Unable to update contact. Please check the form."
-            );
+            // Validation failed: Parse returned HTML and display the errors + form inside dialog
+            const text = await response.text();
+            const page = new DOMParser().parseFromString(text, "text/html");
+            const newForm = page.querySelector("form");
+            const errorAlert = page.querySelector(".alert-error");
+
+            const container = document.getElementById("editFormContainer");
+            if (container && newForm) {
+                container.innerHTML = "";
+                if (errorAlert) {
+                    container.appendChild(errorAlert);
+                }
+                container.appendChild(newForm);
+                showCopyToast("Please correct the form errors.");
+            } else {
+                alert("Unable to update contact. Please check the form.");
+            }
         }
 
     } catch (error) {
         console.error(error);
-
         alert("Unable to update contact.");
     }
 });
@@ -286,7 +347,6 @@ document.addEventListener("click", async function (event) {
 
         if (!dialog) {
             dialog = document.createElement("dialog");
-
             dialog.id = "addDialog";
 
             dialog.innerHTML = `
@@ -298,7 +358,7 @@ document.addEventListener("click", async function (event) {
                         Close
                     </button>
 
-                    <h2>Add Contact</h2>
+                    <h2><i class="fa-solid fa-user-plus"></i> Add Contact</h2>
 
                     <div id="addFormContainer"></div>
                 </div>
@@ -307,18 +367,14 @@ document.addEventListener("click", async function (event) {
             document.body.appendChild(dialog);
         }
 
-        const container =
-            document.getElementById("addFormContainer");
-
+        const container = document.getElementById("addFormContainer");
         container.innerHTML = "";
-
         container.appendChild(addForm);
 
         dialog.showModal();
 
     } catch (error) {
         console.error(error);
-
         alert("Unable to load the Add Contact form.");
     }
 });
@@ -330,10 +386,22 @@ document.addEventListener("click", async function (event) {
 
 document.addEventListener("click", function (event) {
     if (event.target.id === "closeAddDialog") {
-        const dialog =
-            document.getElementById("addDialog");
+        const dialog = document.getElementById("addDialog");
+        if (dialog) dialog.close();
+    }
+});
 
-        dialog.close();
+
+// ==============================
+// CLOSE DIALOGS ON CANCEL LINK CLICK
+// ==============================
+
+document.addEventListener("click", function (event) {
+    const cancelLink = event.target.closest("#addDialog a[href*='index.php'], #editDialog a[href*='index.php']");
+    if (cancelLink) {
+        event.preventDefault();
+        const dialog = cancelLink.closest("dialog");
+        if (dialog) dialog.close();
     }
 });
 
@@ -343,8 +411,7 @@ document.addEventListener("click", function (event) {
 // ==============================
 
 document.addEventListener("submit", async function (event) {
-    const addForm =
-        event.target.closest("#addDialog form");
+    const addForm = event.target.closest("#addDialog form");
 
     if (!addForm) {
         return;
@@ -367,29 +434,42 @@ document.addEventListener("submit", async function (event) {
          * add_contact.php redirects to index.php
          * when the insert succeeds.
          */
-
         if (response.redirected) {
-            alert("Contact added successfully!");
+            showCopyToast("Contact added successfully!");
 
-            document
-                .getElementById("addDialog")
-                .close();
+            const dialog = document.getElementById("addDialog");
+            if (dialog) dialog.close();
 
             loadContacts();
             loadStats();
 
         } else {
-            alert(
-                "Unable to add contact. Please check the form."
-            );
+            // Validation failed: Parse returned HTML and display the errors + form inside dialog
+            const text = await response.text();
+            const page = new DOMParser().parseFromString(text, "text/html");
+            const newForm = page.querySelector("form");
+            const errorAlert = page.querySelector(".alert-error");
+
+            const container = document.getElementById("addFormContainer");
+            if (container && newForm) {
+                container.innerHTML = "";
+                if (errorAlert) {
+                    container.appendChild(errorAlert);
+                }
+                container.appendChild(newForm);
+                showCopyToast("Please correct the form errors.");
+            } else {
+                alert("Unable to add contact. Please check the form.");
+            }
         }
 
     } catch (error) {
         console.error(error);
-
         alert("Unable to add contact.");
     }
 });
+
+
 // ==============================
 // CLICK TO COPY CONTACT INFO
 // ==============================
@@ -405,19 +485,17 @@ document.addEventListener("click", async function (event) {
 
     try {
         await navigator.clipboard.writeText(value);
-
         showCopyToast("Copied: " + value);
 
     } catch (error) {
         console.error("Unable to copy contact information.", error);
-
         showCopyToast("Unable to copy");
     }
 });
 
 
 // ==============================
-// COPY NOTIFICATION
+// NOTIFICATION / TOAST POPUP
 // ==============================
 
 function showCopyToast(message) {
@@ -438,8 +516,9 @@ function showCopyToast(message) {
 
     window.copyToastTimer = setTimeout(function () {
         toast.classList.remove("show");
-    }, 1800);
+    }, 2400);
 }
+
 
 // ==============================
 // RUN WHEN THE PAGE FIRST LOADS
@@ -448,6 +527,7 @@ function showCopyToast(message) {
 document.addEventListener(
     "DOMContentLoaded",
     function () {
+        setupSearchAndFilters();
         loadContacts();
         loadStats();
     }

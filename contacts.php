@@ -28,8 +28,23 @@ $sql = "SELECT * FROM contacts WHERE 1=1";
 $params = [];
 
 if ($search !== '') {
-    $sql .= " AND (first_name LIKE :s OR last_name LIKE :s OR email LIKE :s OR phone LIKE :s OR city LIKE :s OR notes LIKE :s)";
-    $params[':s'] = "%$search%";
+    $sql .= " AND (
+        first_name LIKE :s1 
+        OR last_name LIKE :s2 
+        OR CONCAT(first_name, ' ', last_name) LIKE :s3 
+        OR email LIKE :s4 
+        OR phone LIKE :s5 
+        OR city LIKE :s6 
+        OR notes LIKE :s7
+    )";
+    $term = "%$search%";
+    $params[':s1'] = $term;
+    $params[':s2'] = $term;
+    $params[':s3'] = $term;
+    $params[':s4'] = $term;
+    $params[':s5'] = $term;
+    $params[':s6'] = $term;
+    $params[':s7'] = $term;
 }
 
 if ($groupFilter !== '' && in_array($groupFilter, ['Family', 'Friends', 'Business'], true)) {
@@ -139,10 +154,12 @@ else:
     <tr id="emptyStateRow">
         <td colspan="8" class="empty-state-cell">
             <div class="empty-state">
-                <div class="empty-icon"><i class="fa-solid fa-users-slash"></i></div>
-                <h3>No contacts found in database</h3>
+                <div class="empty-icon <?= ($search !== '' || $groupFilter !== '') ? 'empty-icon-error' : '' ?>">
+                    <i class="fa-solid <?= ($search !== '' || $groupFilter !== '') ? 'fa-circle-exclamation' : 'fa-users-slash' ?>"></i>
+                </div>
+                <h3><?= ($search !== '' || $groupFilter !== '') ? 'Contact Not Found' : 'No contacts found in database' ?></h3>
                 <p>
-                    <?= ($search !== '' || $groupFilter !== '') ? 'No contacts match your filter criteria. Try clearing your search.' : 'Click "Add Contact" above to insert your first record.' ?>
+                    <?= ($search !== '' || $groupFilter !== '') ? 'No contacts match your search or filter criteria. Please check your query and try again.' : 'Click "Add Contact" above to insert your first record.' ?>
                 </p>
                 <!-- Where JavaScript and AJAX would go to trigger the Add Contact popup -->
                 <a href="add_contact.php" class="btn btn-primary" id="btnEmptyAddContact">
